@@ -1,0 +1,7 @@
+from main import *
+width=1000
+height=1000
+white = (255, 255, 255)
+screen=pygame.display.set_mode((width,height))
+tlo=pygame.image.load(os.path.join('tlo.PNG'))
+pygame.display.set_caption('zajebista gierka')

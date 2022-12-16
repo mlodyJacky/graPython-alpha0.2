@@ -1,0 +1,329 @@
+import pygame
+import os
+import random
+import math
+pygame.init()
+
+width=1000
+height=1000
+white = (255, 255, 255)
+stangry="menu"
+screen=pygame.display.set_mode((width,height))
+pokojlewoprawogoradol=pygame.image.load(os.path.join('pokojlewoprawogoradol.PNG'))
+gracz=pygame.image.load(os.path.join('gracz.PNG'))
+pygame.display.set_caption('zajebista gierka')
+clock = pygame.time.Clock()
+
+def update():
+    pygame.display.update()
+    clock.tick(60)
+
+def napisz(tekst, x, y, rozmiar):
+   cz = pygame.font.SysFont("Arial", rozmiar)
+   rend = cz.render(tekst, 1, (50,50,50))
+   screen.blit(rend, (x,y))
+
+def odleglosc(x,y,m,n):
+    return math.sqrt(pow(m-x,2)+pow(n-y,2))
+
+class PRZECIWNIK():
+    def __init__(self,x,y):
+        self.x=x
+        self.y=y
+        self.maxhp=50
+        self.aktualnehp=50
+        self.dlkwadrathp=100
+        self.czerwony= (255,0,0)
+        self.przeciwnik=pygame.image.load(os.path.join('przeciwnik.PNG'))    
+        self.v=3
+        self.sila=1
+    def wyswietlanie(self):
+        screen.blit(self.przeciwnik,(self.x,self.y))
+    def pokazhp(self):
+        pygame.draw.rect(screen, self.czerwony, pygame.Rect(self.x+18, self.y-35, self.aktualnehp/self.maxhp*60, 20))
+        napisz(str(self.aktualnehp), self.x+35 ,self.y-35, 20)
+    def poruszanie(self,graczx,graczy):
+        if(self.x<graczx):
+            self.x+=self.v
+        if(self.x>graczx):
+            self.x-=self.v
+        if(self.y<graczy):
+            self.y+=self.v
+        if(self.y>graczy):
+            self.y-=self.v
+    def atak(self,hp,graczx,graczy):
+        if(odleglosc(self.x+50,self.y+50,graczx,graczy)<75):
+            gracz.aktualnehp-=1
+    def dostajehita(self,moc,czydostaje,graczx,graczy):
+        if(czydostaje==True):
+            if(odleglosc(self.x+50,self.y+50,graczx,graczy)<125):
+                self.aktualnehp-=moc
+            
+
+
+
+class GRACZ():
+    def __init__(self,x,y):
+        self.ekwipunek = []
+        self.maxhp=100
+        self.aktualnehp=100
+        self.dlkwadrathp=100
+        self.czerwony= (255,0,0)
+        self.x=x
+        self.y=y
+        self.v=10
+        self.graczprzodem=pygame.image.load(os.path.join('graczprzod.PNG'))
+        self.gracztyl=pygame.image.load(os.path.join('gracztyl.PNG'))
+        self.graczlewo=pygame.image.load(os.path.join('graczlewo.PNG'))
+        self.graczprawo=pygame.image.load(os.path.join('graczprawo.PNG'))
+        self.zdjeciekewipunku= pygame.image.load(os.path.join('menueq.PNG'))
+        self.zdjecieskrzyni=pygame.image.load(os.path.join('skrzynia.PNG'))
+
+        self.miecz = pygame.image.load(os.path.join('miecz.PNG'))
+        self.ostatniapozycja = self.graczprzodem
+        self.lewo = False
+        self.prawo = False
+        self.dol = False
+        self.gora = False
+        self.otwarcieekwipunku = False
+        self.mozeszzamknacekwipunek = False
+        self.zmienpokoj = True
+        self.moc = 3
+        self.atak = False
+        self.zawartoscekwipunku = []
+        self.pustaskrzynia = False
+        self.level=0
+
+
+
+        self.a=pygame.image.load(os.path.join('pokojlewoprawogoradol.PNG'))
+        self.b=pygame.image.load(os.path.join('pokojgoralewodol.PNG'))
+        self.c=pygame.image.load(os.path.join('pokojgoraprawodol.PNG'))
+        self.d=pygame.image.load(os.path.join('pokojlewoprawodol.PNG'))
+        self.e=pygame.image.load(os.path.join('pokojlewoprawogora.PNG'))
+        self.f=pygame.image.load(os.path.join('pokojlewodol.PNG'))
+        self.g=pygame.image.load(os.path.join('pokojlewogora.PNG'))
+        self.h=pygame.image.load(os.path.join('pokojprawodol.PNG'))
+        self.i=pygame.image.load(os.path.join('pokojprawogora.PNG'))
+
+        self.iteratormapy=24
+        self.akcja = False
+        self.mapa=  [
+                        self.h,  self.d,  self.d,  self.d,  self.d,  self.d,  self.f,
+                        self.c,  self.a,  self.a,  self.a,  self.a,  self.a,  self.b,
+                        self.c,  self.a,  self.a,  self.a,  self.a,  self.a,  self.b,
+                        self.c,  self.a,  self.a,  self.a,  self.a,  self.a,  self.b,               
+                        self.c,  self.a,  self.a,  self.a,  self.a,  self.a,  self.b,
+                        self.c,  self.a,  self.a,  self.a,  self.a,  self.a,  self.b,
+                        self.i,  self.e,  self.e,  self.e,  self.e,  self.e, self.g  
+                    ]
+        self.mapaskrzyn=[
+                            0,0,0,0,0,0,0,
+                            0,0,0,0,0,0,0,
+                            0,0,0,0,0,0,0,
+                            0,0,1,1,0,0,0,
+                            0,0,0,0,0,0,0,
+                            0,0,0,0,0,0,0,
+                            0,0,0,0,0,0,0,
+                        ]
+        self.aktualnypokoj=self.mapa[self.iteratormapy]
+    def pokazlvl(self):
+        napisz("LEVEL " , 30 ,30, 20)
+        napisz(str(self.level) , 100,30, 20)
+    def pokazhp(self):
+        pygame.draw.rect(screen, self.czerwony, pygame.Rect(self.x+18, self.y-35, self.aktualnehp/self.maxhp*60, 20))
+        napisz(str(self.aktualnehp), self.x+35 ,self.y-35, 20)
+
+    def rysujpokoj(self):
+        #lewo
+        if self.x+50 < 200 and self.x+50 > 80 and self.y+50 > 430 and self.y+50 < 570 and self.iteratormapy!=0 and self.iteratormapy%7!=0 and self.akcja==True:
+            self.iteratormapy-=1
+            self.aktualnypokoj=self.mapa[self.iteratormapy]
+            print(self.iteratormapy)
+            self.x = 750
+            self.y= 430
+
+        #gora
+        if self.x+50 < 570 and self.x+50 > 420 and self.y+50 > 40 and self.y+50 < 120 and self.iteratormapy>=7 and self.akcja==True:
+            self.iteratormapy-=7
+            self.aktualnypokoj=self.mapa[self.iteratormapy]
+            print(self.iteratormapy)
+            self.x = 430
+            self.y= 774
+
+        #prawo
+        if self.x+50 < 920 and self.x+50 > 830 and self.y+50 > 430 and self.y+50 < 570 and self.iteratormapy+1%7!=0 and self.iteratormapy!=6 and self.akcja==True:
+            self.iteratormapy+=1
+            self.aktualnypokoj=self.mapa[self.iteratormapy]
+            print(self.iteratormapy)
+            self.x = 180
+            self.y= 430
+        
+        #dol
+        if self.x+50 < 570 and self.x+50 > 420 and self.y+50 > 840 and self.y+50 < 920 and self.iteratormapy<41 and self.akcja==True:
+            self.iteratormapy+=7
+            self.aktualnypokoj=self.mapa[self.iteratormapy]
+            print(self.iteratormapy)
+            self.x = 430
+            self.y= 180  
+        screen.blit(self.aktualnypokoj, (0,0))
+
+    def rysujgracza(self):
+        if self.lewo==True:
+            screen.blit(self.graczlewo,(self.x,self.y))
+            self.ostatniapozycja=self.graczlewo
+        if self.prawo==True:
+            screen.blit(self.graczprawo,(self.x,self.y))
+            self.ostatniapozycja=self.graczprawo
+        if self.gora==True:
+            screen.blit(self.gracztyl,(self.x,self.y))
+            self.ostatniapozycja=self.gracztyl
+        if self.dol==True:
+            screen.blit(self.graczprzodem,(self.x,self.y))
+            self.ostatniapozycja=self.graczprzodem
+        else:
+            screen.blit(self.ostatniapozycja,(self.x,self.y))
+
+        
+    def ruchgracza(self):
+        if self.prawo==True:
+            self.x+=self.v
+            self.prawo==False
+        if self.lewo==True:
+            self.x-=self.v
+            self.lewo==False
+        if self.gora==True:
+            self.y-=self.v
+            self.gora==False
+        if self.dol==True:
+            self.y+=self.v
+            self.dol==False
+
+    def kolizja(self):
+        if gracz.x<=50:
+            gracz.x=50
+        if gracz.y<=25:
+            gracz.y=25
+        if gracz.x>=850:
+            gracz.x=850
+        if gracz.y>=825:
+            gracz.y=825
+
+    def ekwipunekgracza(self):
+        if self.otwarcieekwipunku ==True:
+            napisz("Twoje eq", 380 , 90, 50)
+            screen.blit(self.zdjeciekewipunku,(200,150))
+            self.mozeszzamknacekwipunek = True
+            if len(self.zawartoscekwipunku)!=0:
+                for i in range (len(self.zawartoscekwipunku)):
+                    screen.blit(self.zawartoscekwipunku[i],(200,200))
+    
+    def otwarcieskrzyni(self,klik):
+        if self.mapaskrzyn[self.iteratormapy]==1:
+            screen.blit(self.zdjecieskrzyni,(400,400))
+        if odleglosc(400,400, self.x+50,self.y+50) < 150 and self.otwarcieekwipunku == True and self.mapaskrzyn[self.iteratormapy]==1:
+            napisz("Skrzynia", 380 , 510, 50)
+            screen.blit(self.zdjeciekewipunku,(200,570))
+            if klik ==False and self.pustaskrzynia == False:
+                screen.blit(self.miecz,(200,600))
+            if klik == True:
+                self.zawartoscekwipunku.append(self.miecz)
+                self.moc+=5
+                self.pustaskrzynia=True
+
+
+
+przeciwnik = [PRZECIWNIK(200,200)]
+gracz = GRACZ(500,500)
+
+while True:
+    for event in pygame.event.get():
+        if event.type == pygame.QUIT:
+            pygame.quit()
+            quit()
+        if event.type == pygame.MOUSEBUTTONDOWN:
+            gracz.atak = True
+        if event.type == pygame.KEYDOWN:
+            if event.key == pygame.K_w:
+                gracz.gora=True
+            if event.key == pygame.K_a:
+                gracz.lewo=True
+            if event.key == pygame.K_s:
+                gracz.dol=True
+            if event.key == pygame.K_d:
+                gracz.prawo=True
+            if event.key == pygame.K_e:
+                if gracz.otwarcieekwipunku == False:
+                    gracz.otwarcieekwipunku = True
+                if gracz.mozeszzamknacekwipunek == True:
+                    gracz.otwarcieekwipunku = False
+                    gracz.mozeszzamknacekwipunek = False
+
+            if event.key == pygame.K_SPACE:
+                stangry="gra"
+            if event.key == pygame.K_f:
+                gracz.akcja = True
+
+                
+        if event.type == pygame.KEYUP:
+            if event.key == pygame.K_w:
+                gracz.gora=False
+            if event.key == pygame.K_a:
+                gracz.lewo=False
+            if event.key == pygame.K_s:
+                gracz.dol=False
+            if event.key == pygame.K_d:
+                gracz.prawo=False
+            if event.key == pygame.K_f:
+                gracz.akcja = False
+
+    if stangry=="menu":
+        screen.fill((0, 0, 0))
+        napisz("WITAJ W ZAJEBISTEJ GIERCE", 150 , 100, 50)
+        napisz("Naciśnij spację, aby zacząć", 190 , 200, 50)
+        napisz("Sterowanie:", 220 , 400, 50)
+        napisz("Ruch: W A S D", 220 , 460, 50)
+        napisz("Otworz/Zamknij ekwipunek: E", 220 , 520, 50)
+        napisz("Klawisz akcji: F", 220 , 580, 50)
+        napisz("Atak: LPM", 220 , 640, 50)
+        
+
+    if stangry=="gra":
+        gracz.rysujpokoj()
+        gracz.ruchgracza()
+        gracz.kolizja()
+
+        if len(przeciwnik)!=0:
+            przeciwnik[0].poruszanie(gracz.x,gracz.y)
+        if len(przeciwnik)!=0:
+            przeciwnik[0].atak(gracz.aktualnehp,gracz.x+50,gracz.y+50)
+        if gracz.atak == True:
+            if len(przeciwnik)!=0:
+                przeciwnik[0].dostajehita(gracz.moc,gracz.atak,gracz.x,gracz.y)
+            gracz.atak=False
+        
+
+        gracz.otwarcieskrzyni(gracz.akcja)
+        gracz.rysujgracza()
+        gracz.pokazhp()
+        gracz.pokazlvl()
+        if len(przeciwnik)!=0:
+            przeciwnik[0].wyswietlanie()
+        if len(przeciwnik)!=0:
+            przeciwnik[0].pokazhp()
+        gracz.ekwipunekgracza()
+        if(gracz.aktualnehp<=0):
+            stangry="koniec"
+        
+        if len(przeciwnik)!=0:
+            if przeciwnik[0].aktualnehp<=0:
+                przeciwnik.pop(0)
+                gracz.level+=1
+    
+
+    if stangry == "koniec":
+        screen.fill((0, 0, 0))
+        napisz("TO KONIEC", 150 , 100, 50)
+        napisz("PRZYKRO MI ALE PRZEGRALES", 190 , 200, 50)
+        napisz("SPROBUJ PONOWNIE", 230 , 300, 50)
+    update()
