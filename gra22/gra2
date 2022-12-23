@@ -292,7 +292,7 @@ while True:
 
     if stangry=="menu":
         screen.fill((0, 0, 0))
-        napisz("WITAJ W ZAJEBISTEJ GIERCE", 150 , 100, 50)
+        napisz("WITAJ W SUPER GIERCE", 150 , 100, 50)
         napisz("Naciśnij spację, aby zacząć", 190 , 200, 50)
         napisz("Sterowanie:", 220 , 400, 50)
         napisz("Ruch: W A S D", 220 , 460, 50)
