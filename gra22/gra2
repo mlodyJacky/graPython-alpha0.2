@@ -30,8 +30,8 @@ class PRZECIWNIK():
     def __init__(self,x,y):
         self.x=x
         self.y=y
-        self.maxhp=50
-        self.aktualnehp=50
+        self.maxhp=5
+        self.aktualnehp=5
         self.dlkwadrathp=100
         self.czerwony= (255,0,0)
         self.przeciwnik=pygame.image.load(os.path.join('przeciwnik.PNG'))    
@@ -41,8 +41,8 @@ class PRZECIWNIK():
         self.mapaprzeciwnikow=[
                             0,0,0,0,0,0,0,
                             0,0,0,0,0,0,0,
-                            0,0,0,0,0,0,0,
-                            0,0,1,1,0,0,1,
+                            0,0,0,1,0,0,0,
+                            0,0,1,1,1,0,1,
                             0,0,0,0,0,0,0,
                             0,0,0,0,0,0,0,
                             0,0,0,0,0,0,0,
@@ -246,8 +246,11 @@ class GRACZ():
 
 
 wrog = PRZECIWNIK(200,200)
-przeciwnik = []
+i=0
+przeciwnik = [wrog]
 gracz = GRACZ(500,500)
+
+dodany = False
 
 while True:
     for event in pygame.event.get():
@@ -302,13 +305,12 @@ while True:
         
 
     if stangry=="gra":
+        if wrog.mapaprzeciwnikow[gracz.iteratormapy] == 1:
+            if(len(przeciwnik)<2):
+                przeciwnik.append(PRZECIWNIK(200,200))
 
             
         gracz.rysujpokoj(wrog.zabity)
-        if wrog.mapaprzeciwnikow[gracz.iteratormapy]==1 and wrog.zabity == False:
-            przeciwnik.append(PRZECIWNIK(200,200))
-        elif len(przeciwnik)!=0:
-                przeciwnik.clear()
         gracz.ruchgracza()
         gracz.kolizja()
 
@@ -321,6 +323,7 @@ while True:
                 przeciwnik[0].dostajehita(gracz.moc,gracz.atak,gracz.x,gracz.y)
             gracz.atak=False
         
+        print(wrog.mapaprzeciwnikow[gracz.iteratormapy], len(przeciwnik))
 
         gracz.otwarcieskrzyni(gracz.akcja)
         gracz.rysujgracza()
@@ -328,16 +331,17 @@ while True:
         gracz.pokazlvl()
         if len(przeciwnik)!=0:
             przeciwnik[0].wyswietlanie()
-        if len(przeciwnik)!=0:
             przeciwnik[0].pokazhp()
         gracz.ekwipunekgracza()
         if(gracz.aktualnehp<=0):
             stangry="koniec"
-        
+        if len(przeciwnik)!=0:
+            if przeciwnik[0].mapaprzeciwnikow[gracz.iteratormapy]==0:
+                przeciwnik.clear()
         if len(przeciwnik)!=0:
             if przeciwnik[0].aktualnehp<=0:
-                przeciwnik.pop(0)
-                wrog.zabity = True
+                wrog.mapaprzeciwnikow[gracz.iteratormapy]=0
+                przeciwnik.clear()
                 gracz.level+=1
     
 
@@ -347,3 +351,4 @@ while True:
         napisz("PRZYKRO MI ALE PRZEGRALES", 190 , 200, 50)
         napisz("SPROBUJ PONOWNIE", 230 , 300, 50)
     update()
+#wersja alpha0.3
